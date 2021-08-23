@@ -1,0 +1,36 @@
+pipeline { 
+    environment { 
+        registry = "nageshrathod1/my_pro" 
+        registryCredential = 'nageshrathod1' 
+        dockerImage = 'consumer' 
+    }
+    agent any 
+    stages { 
+        stage('Cloning Git') { 
+            steps { 
+                git 'https://gitlab.com/dev-sty/videoanalytics-api.git' 
+            }
+        } 
+        stage('Building image') { 
+            steps { 
+                script { 
+                    dockerImage = docker.build registry + ":$BUILD_NUMBER" 
+                }
+            } 
+        }
+        stage('Deploy image') { 
+            steps { 
+                script { 
+                    docker.withRegistry( 'https://hub.docker.com/repository/docker/nageshrathod1/my_pro', git ) { 
+                        dockerImage.push() 
+                    }
+                } 
+            }
+        } 
+        stage('Cleaning up') { 
+            steps { 
+                sh "docker rmi $registry:$BUILD_NUMBER" 
+            }
+        } 
+    }
+}

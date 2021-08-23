@@ -1,0 +1,1 @@
+nohup -i producer.py > logProducer.log &

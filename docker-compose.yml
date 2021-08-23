@@ -1,0 +1,32 @@
+version: '3'
+services:
+  producer:
+    build: 
+      context: C:\Users\tbedk\videoanalytic\producer
+      dockerfile: Dockerfile
+    ports:
+      - '8080:8080'
+    links:
+      - rabbitmq
+  consumer:
+    build: 
+      context: C:\Users\tbedk\videoanalytic\consumer
+      dockerfile: Dockerfile
+    ports:
+      - '8081:8080'
+    links:
+      - mongo
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: 'test'
+      RABBITMQ_DEFAULT_PASS: 'test'
+      RABBITMQ_DEFAULT_VHOST: 'localhost' 
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+  mongo:
+    image: mongo:latest
+    ports:
+      - '27017:27017'
