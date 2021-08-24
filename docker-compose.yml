@@ -6,27 +6,31 @@ services:
       dockerfile: Dockerfile
     ports:
       - '8080:8080'
-    links:
+    depends_on: 
       - rabbitmq
+      - mongo
   consumer:
     build: 
       context: C:\Users\tbedk\videoanalytic\consumer
       dockerfile: Dockerfile
     ports:
       - '8081:8080'
-    links:
+    depends_on:
+      - rabbitmq
       - mongo
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
     environment:
-      RABBITMQ_DEFAULT_USER: 'test'
-      RABBITMQ_DEFAULT_PASS: 'test'
-      RABBITMQ_DEFAULT_VHOST: 'localhost' 
+      RABBITMQ_DEFAULT_USER: 'rabbitmq'
+      RABBITMQ_DEFAULT_PASS: 'rabbitmq'
+      RABBITMQ_DEFAULT_VHOST: '127.0.0.1' 
     ports:
       - '5672:5672'
       - '15672:15672'
   mongo:
     image: mongo:latest
+    expose: 
+      - '27017'
     ports:
       - '27017:27017'

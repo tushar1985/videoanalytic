@@ -29,12 +29,12 @@ class rmqStreamProducer:
     def __init__(self):
         #rabbitmq credentials
         print("[Prod Info] Intialization started!")
-        self.RMQusername= backendConfigurations['test']
-        self.RMQpassword= backendConfigurations['test']
-        self.RMQhost= backendConfigurations['localhost']
+        self.RMQusername= backendConfigurations['rabbitmq']
+        self.RMQpassword= backendConfigurations['rabbitmq']
+        self.RMQhost= backendConfigurations['127.0.0.1']
         print(f"[Prod Info] Pointing to RabbitMQ server at {self.RMQhost}:15672 ")
-        print(f"[Prod Info] Pointing to MongoDB server at {backendConfigurations['mongo:latest:27017']}")
-        self.RMQexchangeType= backendConfigurations['RMQexchangeType']
+        print(f"[Prod Info] Pointing to MongoDB server at {backendConfigurations['mongo://127.0.0.1:27017']}")
+        self.RMQexchangeType= backendConfigurations['topic']
         #reading camera configurations
         self.streamDetails= allCameraConfigurations()
         self.currentStreams=dict()
@@ -49,7 +49,7 @@ class rmqStreamProducer:
 
     def enableConnection(self):
         credentials = pika.PlainCredentials(self.RMQusername,self.RMQpassword)
-        self.connection= pika.BlockingConnection(pika.ConnectionParameters(host=self.RMQhost, credentials= credentials))
+        self.connection= pika.BlockingConnection(pika.ConnectionParameters(host=self.RMQhost, port='5672', credentials= credentials))
         self.channelDict= dict()
         for cameraName in self.currentStreams:
             self.channelDict[cameraName]= self.connection.channel()
@@ -115,7 +115,7 @@ class rmqStreamProducer:
     
     def run(self):
         # executing readAndPublish function in multithreaded env for each stream with dynamic monitoring of config file
-        with concurrent.futures.ThreadPoolExecutor(max_workers=backendConfigurations['maxThreadWorkers']) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=backendConfigurations['100']) as executor:
             #start the current available stream details in configuration file in different threads
             self.threadList=dict()
             for cameraName,cameraPath in self.currentStreams.items():

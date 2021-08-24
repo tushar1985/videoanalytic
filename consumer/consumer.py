@@ -30,12 +30,12 @@ rabbitCheck()
 class rmqStreamConsumer:
     def __init__(self):
         print("[Cons Info] consumer Initiation started! ...")
-        self.RMQusername= backendConfigurations['RMQusername']
-        self.RMQpassword= backendConfigurations['RMQpassword']
-        self.RMQhost= backendConfigurations['RMQhost']
+        self.RMQusername= backendConfigurations['rabbitmq']
+        self.RMQpassword= backendConfigurations['rabbitmq']
+        self.RMQhost= backendConfigurations['127.0.0.1']
         print(f"[Cons Info] Pointing to RabbitMQ server at {self.RMQhost}:15672 ")
-        print(f"[Cons Info] Pointing to MongoDB server at {backendConfigurations['mongoLink']}")
-        self.RMQexchangeType= backendConfigurations['RMQexchangeType']
+        print(f"[Cons Info] Pointing to MongoDB server at {backendConfigurations['mongo://127.0.0.1:27017']}")
+        self.RMQexchangeType= backendConfigurations['topic']
         self.currentStreams=dict()
         self.streamDetails= allCameraConfigurations()
         for detail in self.streamDetails:
@@ -60,7 +60,7 @@ class rmqStreamConsumer:
         while True:
             try:
                 credentials = pika.PlainCredentials(self.RMQusername,self.RMQpassword)
-                connection= pika.BlockingConnection(pika.ConnectionParameters(host=self.RMQhost, credentials= credentials))
+                connection= pika.BlockingConnection(pika.ConnectionParameters(host=self.RMQhost, port='5672', credentials= credentials))
                 channel= connection.channel()
                 channel.exchange_declare(cameraName, durable=True, exchange_type=self.RMQexchangeType)
                 channel.queue_declare(queue= cameraName)
@@ -72,7 +72,7 @@ class rmqStreamConsumer:
                 continue
 
     def run(self):
-        with concurrent.futures.ThreadPoolExecutor(max_workers=backendConfigurations['maxThreadWorkers']) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=backendConfigurations['100']) as executor:
             self.threadList=dict()
             for cameraName in self.currentStreams:
                 self.threadList[cameraName]=executor.submit(self.startConsuming,cameraName)
